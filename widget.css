@@ -1,0 +1,48 @@
+:root {
+    --bg-color: rgba(0, 0, 0, 0.7);
+    --wins-color: #00ff00;
+    --losses-color: #ff0000;
+    --rank-text-color: #ffffff;
+    --font: Arial, sans-serif;
+}
+
+.widget {
+    position: fixed;
+    font-family: var(--font);
+    background: var(--bg-color);
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    transition: all ease-in-out;
+    transform: translateY(-100%);
+    opacity: 0;
+    font-family: var(--font, Arial, sans-serif);
+}
+
+.stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rank-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rank-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.rank-text {
+    color: var(--rank-text-color);
+    font-weight: bold;
+}
+
+#wins { color: var(--wins-color); }
+#losses { color: var(--losses-color); }
