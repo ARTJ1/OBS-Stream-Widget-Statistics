@@ -7,7 +7,8 @@
  и появятся настройки виджета 
 ![image](https://github.com/user-attachments/assets/61379a3d-b511-4194-b763-5cd067e9db65)
 В URL виджета указываем путь до файла widget.html полный путь. Пример ( D:\Stream-Widget\widget.html)
-![Uploading image.png…]()
+![image](https://github.com/user-attachments/assets/27af294a-c19c-4f07-960f-d19b044cefda)
+
 
 Можно сразу кастомизировать виджет визуально и выставить ваш ранг.
 На сцене растянуть как нужно и тд.  
