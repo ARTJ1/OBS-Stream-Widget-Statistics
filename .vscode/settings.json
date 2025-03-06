@@ -1,6 +1,33 @@
 {
     "Lua.diagnostics.globals": [
         "obslua",
-        "obs"
+        "obs",
+        "hotkey",
+        "script_load",
+        "script_save",
+        "script_unload",
+        "stop_all_activity",
+        "stop_script_and_delete_widget",
+        "delete_widget_source",
+        "font_object",
+        "find_widget_source",
+        "create_widget_source",
+        "increase_wins",
+        "delayed_init",
+        "script_defaults",
+        "script_update",
+        "script_properties",
+        "script_description",
+        "decrease_rank",
+        "reset_stats",
+        "increase_losses",
+        "increase_rank",
+        "update_widget_source",
+        "int_to_css_color",
+        "urlencode"
+    ],
+    "Lua.diagnostics.disable": [
+        "param-type-mismatch",
+        "unused-local"
     ]
 }
