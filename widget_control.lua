@@ -5,7 +5,7 @@ local bit = require("bit")
 local widget_url = "file:///C:/path/to/widget.html"  -- Укажите актуальный путь к widget.html
 local wins = 0
 local losses = 0
-local rank = 0  -- Индекс ранга (например, 0 соответствует "Bronze 5" в вашем JS)
+local rank = 0  -- Индекс ранга (например, 0 соответствует "Bronze 5" в  JS)
 
 local ranks = {}
 
@@ -252,9 +252,8 @@ function script_properties()
     obs.obs_property_list_add_string(bg_type_prop, "image", "image")
     obs.obs_properties_add_color(props, "bg_color", "Цвет фона")
     obs.obs_properties_add_int(props, "bg_alpha", "Прозрачность фона (%)", 0, 100, 1)
-    obs.obs_properties_add_path(props, "bg_image", "Путь к изображению для фона", obs.OBS_PATH_FILE, "", nil)
-    
-  --  obs.obs_properties_add_text(props, "font", "Шрифт", obs.OBS_TEXT_DEFAULT)
+    obs.obs_properties_add_path(props, "bg_image", "Путь к изображению для фона", obs.OBS_PATH_FILE, "", nil)    
+
     obs.obs_properties_add_font(props, "font", "Выберите шрифт")
     obs.obs_properties_add_color(props, "wins_color", "Цвет текста побед")
     obs.obs_properties_add_color(props, "losses_color", "Цвет текста поражений")
