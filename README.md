@@ -3,7 +3,8 @@
 для добовления в ОБС скачиваем ZIP архив. 
 распаковываем в удобное место.  Заходим в ОБС Открываем сцену на которую хотим добавить виджет.
 И идем Сервис-> Скрипты -> жмем + выбираем widget_control.lua (файл который мы  скачали)
-Автоматически на сцене создатся браузерный источник.![image](https://github.com/user-attachments/assets/5953817e-4314-4e6a-a01a-f3cda63e967e)
+Автоматически на сцене создатся браузерный источник.![image](https://github.com/user-attachments/assets/1f67826f-a9fa-47d3-a6df-66e67fda3139)
+
  и появятся настройки виджета 
 ![image](https://github.com/user-attachments/assets/61379a3d-b511-4194-b763-5cd067e9db65)
 В URL виджета указываем путь до файла widget.html полный путь. Пример ( D:\Stream-Widget\widget.html)
