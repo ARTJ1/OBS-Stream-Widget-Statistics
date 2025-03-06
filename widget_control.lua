@@ -238,7 +238,7 @@ function script_properties()
     obs.obs_properties_add_int(props, "anim_duration_out", "Длительность исчезновения (ms)", 100, 10000, 10)
     obs.obs_properties_add_int(props, "hidden_time", "Время скрытия (ms)", 0, 60000, 10)
     -- Кнопка для безопасного удаления виджета и остановки скрипта
-    obs.obs_properties_add_button(props, "stop_button", "Остановить скрипт и удалить виджет", stop_script_and_delete_widget)
+   -- obs.obs_properties_add_button(props, "stop_button", "Остановить скрипт и удалить виджет", stop_script_and_delete_widget)
     return props
 end
 
