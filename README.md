@@ -6,9 +6,10 @@
 Автоматически на сцене создатся браузерный источник.![image](https://github.com/user-attachments/assets/1f67826f-a9fa-47d3-a6df-66e67fda3139)
 
  и появятся настройки виджета 
-![image](https://github.com/user-attachments/assets/61379a3d-b511-4194-b763-5cd067e9db65)
+![image](https://github.com/user-attachments/assets/690dbe0f-3236-43b3-88cd-d6084b05587f)
+
 В URL виджета указываем путь до файла widget.html полный путь. Пример ( D:\Stream-Widget\widget.html)
-![image](https://github.com/user-attachments/assets/27af294a-c19c-4f07-960f-d19b044cefda)
+![image](https://github.com/user-attachments/assets/9aabf65e-8f0e-467a-a817-e197abab3b53)
 
 
 Можно сразу кастомизировать виджет визуально и выставить ваш ранг.
