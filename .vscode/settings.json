@@ -24,7 +24,8 @@
         "increase_rank",
         "update_widget_source",
         "int_to_css_color",
-        "urlencode"
+        "urlencode",
+        "font_size"
     ],
     "Lua.diagnostics.disable": [
         "param-type-mismatch",
