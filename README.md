@@ -8,7 +8,7 @@
  и появятся настройки виджета 
 ![image](https://github.com/user-attachments/assets/690dbe0f-3236-43b3-88cd-d6084b05587f)
 
-В URL виджета указываем путь до файла widget.html полный путь. Пример ( D:\Stream-Widget\widget.html)
+В URL виджета указываем путь до файла widget.html полный путь. Пример ( C:\Users\KDFX Modes\Downloads\OBS-Stream-Widget-Statistics-main\OBS-Stream-Widget-Statistics-main/widget.html)
 Иначе не будет отображаться виджет!
 ![image](https://github.com/user-attachments/assets/9aabf65e-8f0e-467a-a817-e197abab3b53)
 
