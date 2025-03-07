@@ -286,10 +286,10 @@ function script_defaults(settings)
     obs.obs_data_set_default_int(settings, "bg_alpha", 70)
     obs.obs_data_set_default_string(settings, "bg_image", "")
   
-    obs.obs_data_set_string(settings, "face", "Arial, sans-serif")
-    obs.obs_data_set_int(settings, "size", 16)  -- можно задать нужный размер по умолчанию
+    obs.obs_data_set_default_string(settings, "face", "Arial, sans-serif")
+    obs.obs_data_set_default_int(settings, "size", 16)  -- можно задать нужный размер по умолчанию
     obs.obs_data_set_default_obj(settings, "font", settings)
-    obs.obs_data_release(settings)
+   -- obs.obs_data_release(settings)
     obs.obs_data_set_default_int(settings, "wins_color", 0xFF00FF00)
     obs.obs_data_set_default_int(settings, "losses_color", 0xFF0000FF)
     obs.obs_data_set_default_int(settings, "rank_text_color", 0xFFFFFFFF)
