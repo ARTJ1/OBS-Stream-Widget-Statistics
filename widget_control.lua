@@ -25,6 +25,7 @@ local bg_type = "color"          -- "color" или "image"
 local bg_color = "rgba(0,0,0,0.7)"
 local bg_image = ""
 local font = "Arial, sans-serif" -- значение по умолчанию
+local font_size_global = 0   
 local wins_color = "#00ff00"
 local losses_color = "#ff0000"
 local rank_text_color = "#ffffff"
@@ -86,6 +87,7 @@ function update_widget_source()
             "&bgColor=" .. urlencode(bg_color) ..
             "&bgImage=" .. urlencode(bg_image) ..
             "&font=" .. urlencode(font) ..
+            "&fontSize=" .. tostring(font_size_global) .. 
             "&winsColor=" .. urlencode(wins_color) ..
             "&lossesColor=" .. urlencode(losses_color) ..
             "&rankTextColor=" .. urlencode(rank_text_color) ..
@@ -146,7 +148,7 @@ function create_widget_source()
     local source_settings = obs.obs_data_create()
     local initial_url = widget_url .. "?_ts=" .. os.time()
     obs.obs_data_set_string(source_settings, "url", initial_url)
-    obs.obs_data_set_int(source_settings, "width", 300)
+    obs.obs_data_set_int(source_settings, "width", 320)
     obs.obs_data_set_int(source_settings, "height", 100)
     widget_source = obs.obs_source_create("browser_source", "Widget Stats", source_settings, nil)
     if not widget_source then
@@ -257,6 +259,7 @@ function script_update(settings)
     bg_image = obs.obs_data_get_string(settings, "bg_image")
     local font_obj = obs.obs_data_get_obj(settings, "font")
     font = obs.obs_data_get_string(font_obj, "face")
+    font_size_global = obs.obs_data_get_int(font_obj, "size")  -- получаем размер шрифта
     obs.obs_data_release(font_obj)
     local wins_color_int = obs.obs_data_get_int(settings, "wins_color")
     wins_color = int_to_css_color(wins_color_int)
@@ -282,7 +285,11 @@ function script_defaults(settings)
     obs.obs_data_set_default_int(settings, "bg_color", 0xB2000000)
     obs.obs_data_set_default_int(settings, "bg_alpha", 70)
     obs.obs_data_set_default_string(settings, "bg_image", "")
-    obs.obs_data_set_default_string(settings, "font", "Arial, sans-serif")
+  
+    obs.obs_data_set_string(settings, "face", "Arial, sans-serif")
+    obs.obs_data_set_int(settings, "size", 16)  -- можно задать нужный размер по умолчанию
+    obs.obs_data_set_default_obj(settings, "font", settings)
+    obs.obs_data_release(settings)
     obs.obs_data_set_default_int(settings, "wins_color", 0xFF00FF00)
     obs.obs_data_set_default_int(settings, "losses_color", 0xFF0000FF)
     obs.obs_data_set_default_int(settings, "rank_text_color", 0xFFFFFFFF)

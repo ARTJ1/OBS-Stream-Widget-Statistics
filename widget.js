@@ -127,32 +127,64 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSavedConfig();
 
   // Считываем параметры из URL
-  if (params.has('wins')) currentConfig.stats.wins = parseInt(params.get('wins'));
-  if (params.has('losses')) currentConfig.stats.losses = parseInt(params.get('losses'));
-  if (params.has('rank')) {
-      const newRank = parseInt(params.get('rank'));
-      if (!isNaN(newRank) && newRank >= 0 && newRank < RANKS.length) {
-          currentRankIndex = newRank;
-          currentConfig.stats.rankValue = `${RANKS[currentRankIndex].type} ${RANKS[currentRankIndex].level}`;
-          currentConfig.rank.image = RANKS[currentRankIndex].img;
-      }
+  if (params.has('wins')) {
+    currentConfig.stats.wins = parseInt(params.get('wins'));
   }
-  if (params.has('bgType')) currentConfig.background.type = params.get('bgType');
-  if (params.has('bgColor')) currentConfig.background.color = params.get('bgColor');
-  if (params.has('bgImage')) currentConfig.background.image = params.get('bgImage');
-  if (params.has('winsColor')) currentConfig.colors.wins = params.get('winsColor');
-  if (params.has('lossesColor')) currentConfig.colors.losses = params.get('lossesColor');
-  if (params.has('rankTextColor')) currentConfig.colors.rankText = params.get('rankTextColor');
+  if (params.has('losses')) {
+    currentConfig.stats.losses = parseInt(params.get('losses'));
+  }
+  if (params.has('rank')) {
+    const newRank = parseInt(params.get('rank'));
+    if (!isNaN(newRank) && newRank >= 0 && newRank < RANKS.length) {
+      currentRankIndex = newRank;
+      currentConfig.stats.rankValue = `${RANKS[currentRankIndex].type} ${RANKS[currentRankIndex].level}`;
+      currentConfig.rank.image = RANKS[currentRankIndex].img;
+    }
+  }
+  if (params.has('bgType')) {
+    currentConfig.background.type = params.get('bgType');
+  }
+  if (params.has('bgColor')) {
+    currentConfig.background.color = params.get('bgColor');
+  }
+  if (params.has('bgImage')) {
+    currentConfig.background.image = params.get('bgImage');
+  }
+  if (params.has('winsColor')) {
+    currentConfig.colors.wins = params.get('winsColor');
+  }
+  if (params.has('lossesColor')) {
+    currentConfig.colors.losses = params.get('lossesColor');
+  }
+  if (params.has('rankTextColor')) {
+    currentConfig.colors.rankText = params.get('rankTextColor');
+  }
   if (params.has('font')) {
     currentConfig.font = params.get('font');
-    document.documentElement.style.setProperty('--font', currentConfig.font);
-}
+    // Устанавливаем CSS-переменную для семейства шрифтов
+    document.documentElement.style.setProperty('--font-family', currentConfig.font);
+  }
+  if (params.has('fontSize')) {
+    currentConfig.fontSize = parseInt(params.get('fontSize'));
+    // Устанавливаем CSS-переменную для размера шрифта
+    document.documentElement.style.setProperty('--font-size', currentConfig.fontSize + 'px');
+  }
 
-  if (params.has('animDirection')) currentConfig.animation.direction = params.get('animDirection');
-  if (params.has('animDurationIn')) currentConfig.animation.durationIn = parseInt(params.get('animDurationIn'));
-  if (params.has('animStayTime')) currentConfig.animation.stayTime = parseInt(params.get('animStayTime'));
-  if (params.has('animDurationOut')) currentConfig.animation.durationOut = parseInt(params.get('animDurationOut'));
-  if (params.has('hiddenTime')) currentConfig.animation.hiddenTime = parseInt(params.get('hiddenTime'));
+  if (params.has('animDirection')) {
+    currentConfig.animation.direction = params.get('animDirection');
+  }
+  if (params.has('animDurationIn')) {
+    currentConfig.animation.durationIn = parseInt(params.get('animDurationIn'));
+  }
+  if (params.has('animStayTime')) {
+    currentConfig.animation.stayTime = parseInt(params.get('animStayTime'));
+  }
+  if (params.has('animDurationOut')) {
+    currentConfig.animation.durationOut = parseInt(params.get('animDurationOut'));
+  }
+  if (params.has('hiddenTime')) {
+    currentConfig.animation.hiddenTime = parseInt(params.get('hiddenTime'));
+  }
 
   applyConfig(currentConfig);
   startAnimation();
