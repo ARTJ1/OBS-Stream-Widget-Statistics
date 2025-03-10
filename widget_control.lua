@@ -107,26 +107,36 @@ end
 -- Поиск источника "Widget Stats" в текущей сцене
 ---------------------------------------------------
 function find_widget_source()
-    local scene_source = obs.obs_frontend_get_current_scene()
-    if not scene_source then return nil end
-    local scene = obs.obs_scene_from_source(scene_source)
-    if not scene then
-        obs.obs_source_release(scene_source)
-        return nil
-    end
-    local items = obs.obs_scene_enum_items(scene)
-    local found = nil
-    for i, item in ipairs(items) do
-        local src = obs.obs_sceneitem_get_source(item)
-        local src_name = obs.obs_source_get_name(src)
-        if src_name == "Widget Stats" then
-            found = obs.obs_source_get_ref(src)  -- увеличить счетчик ссылок
-            break
+    local scenes = obs.obs_frontend_get_scenes()
+    if not scenes then return nil end
+
+    local found_source = nil
+
+    for _, scene_source in ipairs(scenes) do
+        local scene = obs.obs_scene_from_source(scene_source)
+        if scene then
+            local items = obs.obs_scene_enum_items(scene)
+            for _, item in ipairs(items) do
+                local src = obs.obs_sceneitem_get_source(item)
+                if src and obs.obs_source_get_name(src) == "Widget Stats" then
+                    found_source = src
+                    break
+                end
+            end
+            obs.sceneitem_list_release(items)
+            obs.obs_scene_release(scene)
+
+            -- Если нашли виджет – выходим
+            if found_source then break end
         end
     end
-    obs.sceneitem_list_release(items)
-    obs.obs_source_release(scene_source)
-    return found
+
+    -- Освобождаем ресурсы
+    for _, scene_source in ipairs(scenes) do
+        obs.obs_source_release(scene_source)
+    end
+
+    return found_source
 end
 
 ---------------------------------------------------
@@ -289,7 +299,7 @@ function script_defaults(settings)
     obs.obs_data_set_default_string(settings, "face", "Arial, sans-serif")
     obs.obs_data_set_default_int(settings, "size", 16)  -- можно задать нужный размер по умолчанию
     obs.obs_data_set_default_obj(settings, "font", settings)
-   -- obs.obs_data_release(settings)
+
     obs.obs_data_set_default_int(settings, "wins_color", 0xFF00FF00)
     obs.obs_data_set_default_int(settings, "losses_color", 0xFF0000FF)
     obs.obs_data_set_default_int(settings, "rank_text_color", 0xFFFFFFFF)
