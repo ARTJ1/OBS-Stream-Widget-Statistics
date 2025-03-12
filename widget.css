@@ -5,11 +5,12 @@
     --rank-text-color: #ffffff;
     --font: Arial, sans-serif;
     --font-size: 16px;
+    
 }
 
 .widget {
     position: fixed;
-    font-family: var(--font);
+    /* Убрать дублирование font-family */
     background: var(--bg-color);
     padding: 15px;
     border-radius: 10px;
@@ -20,7 +21,7 @@
     transition: all ease-in-out;
     transform: translateY(-100%);
     opacity: 0;
-    font-family: var(--font, Arial, sans-serif);
+    font-family: var(--font), Arial, sans-serif;
     font-size: var(--font-size);
 }
 

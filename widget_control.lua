@@ -20,29 +20,31 @@ for level = 500, 1, -1 do
     table.insert(ranks, {name = "Top " .. level, value = #ranks})
 end
 
--- Настройки внешнего вида
-local style_settings = {
+local settings = {
+    widget_url = "file:///C:/path/to/widget.html",
+    wins = 0,
+    losses = 0,
+    rank = 0,
     bg_type = "color",
     bg_color = "rgba(0,0,0,0.7)",
+    bg_image = "",
     font = "Arial, sans-serif",
+    font_size = 16,
     wins_color = "#00ff00",
     losses_color = "#ff0000",
-    rank_text_color = "#ffffff"
+    rank_text_color = "#ffffff",
+    anim_direction = "left",
+    anim_duration_in = 1000,
+    anim_stay_time = 10000,
+    anim_duration_out = 1000,
+    hidden_time = 10000,
+    bg_alpha = 70,
+    auto_create_source = true
 }
-
--- Настройки анимации (в мс)
-local anim_direction = "left"
-local anim_duration_in = 1000
-local anim_stay_time = 10000
-local anim_duration_out = 1000
-local hidden_time = 10000
-
-local auto_create_source = true
-local bg_alpha = 70
 
 local widget_source = nil
 local settings_global = nil
-local stopped = false
+
 
 ---------------------------------------------------
 -- Функция для URL‑кодирования строки
@@ -79,38 +81,49 @@ end
 function update_widget_source()
     if not widget_source  then
         local sources = find_widget_sources()
-        if #sources == 0 then
-            if auto_create_source then
+        if #sources > 0 then
+            widget_source = sources[1]
+        else
+            if settings.auto_create_source then
                 create_widget_source()
+                if not widget_source then return end
             else
                 return
             end
-        else
-            widget_source = sources[1]
         end
     end
 
     local params = {
-        wins = wins,
-        losses = losses,
-        rank = rank,
-        bgType = style_settings.bg_type,
-        bgColor = style_settings.bg_color,
-        font = style_settings.font,
-        winsColor = style_settings.wins_color,
-        lossesColor = style_settings.losses_color,
-        rankTextColor = style_settings.rank_text_color
+        wins = settings.wins,
+        losses = settings.losses,
+        rank = settings.rank,
+        bgType = settings.bg_type,  -- camelCase
+        bgColor = urlencode(settings.bg_color),
+        bgImage = urlencode(settings.bg_image),
+        font = urlencode(settings.font),
+        fontSize = settings.font_size,
+        winsColor = urlencode(settings.wins_color),  -- camelCase
+        lossesColor = urlencode(settings.losses_color),  -- camelCase
+        rankTextColor = urlencode(settings.rank_text_color),  -- camelCase
+        animDirection = settings.anim_direction,  -- camelCase
+        animDurationIn = settings.anim_duration_in,
+        animStayTime = settings.anim_stay_time,
+        animDurationOut = settings.anim_duration_out,
+        hiddenTime = settings.hidden_time
     }
 
+    -- Формируем URL-строку
     local query = ""
     for k, v in pairs(params) do
-        query = query .. k .. "=" .. urlencode(tostring(v)) .. "&"
+        query = query .. k .. "=" .. tostring(v) .. "&"
     end
+    local full_url = settings.widget_url .. "?" .. query .. "_t="..os.time()
 
-    local settings = obs.obs_data_create()
-    obs.obs_data_set_string(settings, "url", widget_url .. "?" .. query .. "_t="..os.time())
-    obs.obs_source_update(widget_source, settings)
-    obs.obs_data_release(settings)
+    -- Обновляем источник
+    local source_settings = obs.obs_data_create()
+    obs.obs_data_set_string(source_settings, "url", full_url)
+    obs.obs_source_update(widget_source, source_settings)
+    obs.obs_data_release(source_settings)
 end
 
 ---------------------------------------------------
@@ -141,7 +154,7 @@ function create_widget_source()
     local settings = obs.obs_data_create()
     
     obs.obs_data_set_string(settings, "url", widget_url)
-    obs.obs_data_set_int(settings, "width", 320)
+    obs.obs_data_set_int(settings, "width", 470)
     obs.obs_data_set_int(settings, "height", 100)
     
     widget_source = obs.obs_source_create("browser_source", "Widget Stats", settings, nil)
@@ -164,32 +177,32 @@ local hotkey_reset_stats_id = obs.OBS_INVALID_HOTKEY_ID
 
 function increase_wins(pressed)
     if not pressed then return end
-    wins = wins + 1
+    settings.wins = settings.wins + 1 
     update_widget_source()
 end
 
 function increase_losses(pressed)
     if not pressed then return end
-    losses = losses + 1
+    settings.losses = settings.losses + 1
     update_widget_source()
 end
 
 function increase_rank(pressed)
     if not pressed then return end
-    rank = rank + 1
+    settings.rank = settings.rank + 1
     update_widget_source()
 end
 
 function decrease_rank(pressed)
     if not pressed then return end
-    if rank > 0 then rank = rank - 1 end
+    if settings.rank > 0 then settings.rank = settings.rank - 1 end
     update_widget_source()
 end
 
 function reset_stats(pressed)
     if not pressed then return end
-    wins = 0
-    losses = 0
+    settings.wins = 0  
+    settings.losses = 0
     update_widget_source()
 end
 
@@ -235,35 +248,46 @@ function script_properties()
     return props
 end
 
-function script_update(settings)
-    auto_create_source = obs.obs_data_get_bool(settings, "auto_create_source")
-    widget_url = obs.obs_data_get_string(settings, "widget_url")
-    wins = obs.obs_data_get_int(settings, "wins")
-    losses = obs.obs_data_get_int(settings, "losses")
-    rank = obs.obs_data_get_int(settings, "rank")
-    bg_type = obs.obs_data_get_string(settings, "bg_type")
-    local bg_color_int = obs.obs_data_get_int(settings, "bg_color")
-    local alpha = obs.obs_data_get_int(settings, "bg_alpha")
-    local new_alpha = math.floor(alpha * 255 / 100)
-    local rgb = bit.band(bg_color_int, 0x00FFFFFF)
-    bg_color = int_to_css_color(bit.bor(bit.lshift(new_alpha, 24), rgb))
-    bg_image = obs.obs_data_get_string(settings, "bg_image")
-    local font_obj = obs.obs_data_get_obj(settings, "font")
-    font = obs.obs_data_get_string(font_obj, "face")
-    font_size_global = obs.obs_data_get_int(font_obj, "size")  -- получаем размер шрифта
-    obs.obs_data_release(font_obj)
-    local wins_color_int = obs.obs_data_get_int(settings, "wins_color")
-    wins_color = int_to_css_color(wins_color_int)
-    local losses_color_int = obs.obs_data_get_int(settings, "losses_color")
-    losses_color = int_to_css_color(losses_color_int)
-    local rank_text_color_int = obs.obs_data_get_int(settings, "rank_text_color")
-    rank_text_color = int_to_css_color(rank_text_color_int)
-    anim_direction = obs.obs_data_get_string(settings, "anim_direction")
-    anim_duration_in = obs.obs_data_get_int(settings, "anim_duration_in")
-    anim_stay_time = obs.obs_data_get_int(settings, "anim_stay_time")
-    anim_duration_out = obs.obs_data_get_int(settings, "anim_duration_out")
-    hidden_time = obs.obs_data_get_int(settings, "hidden_time")
-    update_widget_source()
+function script_update(script_settings)
+ -- Обновляем все параметры из GUI
+ settings.auto_create_source = obs.obs_data_get_bool(script_settings, "auto_create_source")
+ settings.widget_url = obs.obs_data_get_string(script_settings, "widget_url")
+ settings.wins = obs.obs_data_get_int(script_settings, "wins")
+ settings.losses = obs.obs_data_get_int(script_settings, "losses")
+ settings.rank = obs.obs_data_get_int(script_settings, "rank")
+ settings.bg_type = obs.obs_data_get_string(script_settings, "bg_type")
+ 
+ -- Обработка цвета фона с прозрачностью
+ local bg_color_int = obs.obs_data_get_int(script_settings, "bg_color")
+ local alpha = math.floor((obs.obs_data_get_int(script_settings, "bg_alpha") or 70) * 255 / 100)
+ settings.bg_color = string.format("rgba(%d,%d,%d,%.2f)",
+     bit.band(bg_color_int, 0xFF),
+     bit.band(bit.rshift(bg_color_int, 8), 0xFF),
+     bit.band(bit.rshift(bg_color_int, 16), 0xFF),
+     alpha / 255
+ )
+ 
+ settings.bg_image = obs.obs_data_get_string(script_settings, "bg_image")
+ 
+ -- Обработка шрифта
+ local font_obj = obs.obs_data_get_obj(script_settings, "font")
+ settings.font = obs.obs_data_get_string(font_obj, "face") or "Arial, sans-serif"
+ settings.font_size = obs.obs_data_get_int(font_obj, "size") or 16
+ obs.obs_data_release(font_obj)
+ 
+ -- Цвета текста
+ settings.wins_color = int_to_css_color(obs.obs_data_get_int(script_settings, "wins_color"))
+ settings.losses_color = int_to_css_color(obs.obs_data_get_int(script_settings, "losses_color"))
+ settings.rank_text_color = int_to_css_color(obs.obs_data_get_int(script_settings, "rank_text_color"))
+ 
+ -- Настройки анимации
+ settings.anim_direction = obs.obs_data_get_string(script_settings, "anim_direction")
+ settings.anim_duration_in = obs.obs_data_get_int(script_settings, "anim_duration_in")
+ settings.anim_stay_time = obs.obs_data_get_int(script_settings, "anim_stay_time")
+ settings.anim_duration_out = obs.obs_data_get_int(script_settings, "anim_duration_out")
+ settings.hidden_time = obs.obs_data_get_int(script_settings, "hidden_time")
+ 
+ update_widget_source()
 end
 
 function script_defaults(settings)
@@ -343,6 +367,9 @@ function script_load(settings)
         obs.script_log(obs.LOG_INFO, "Выбранный шрифт: " .. face)
     end
 
+   
+
+
     obs.script_log(obs.LOG_INFO, "Скрипт загружается...")
     local widget_sources = find_widget_sources()
     if #widget_sources > 0 then
@@ -388,24 +415,31 @@ function hotkey(settings)
     obs.obs_data_array_release(hk_array)
 end
 
-function script_save(settings)
-    obs.obs_data_set_int(settings, "wins", wins)
-    obs.obs_data_set_int(settings, "losses", losses)
-    obs.obs_data_set_int(settings, "rank", rank)
+function script_save(script_settings)
+    -- Сохраняем статистику из таблицы settings
+    obs.obs_data_set_int(script_settings, "wins", settings.wins)
+    obs.obs_data_set_int(script_settings, "losses", settings.losses)
+    obs.obs_data_set_int(script_settings, "rank", settings.rank)
+    
+    -- Сохраняем горячие клавиши
     local hk_array = obs.obs_hotkey_save(hotkey_increase_wins_id)
-    obs.obs_data_set_array(settings, "widget_increase_wins", hk_array)
+    obs.obs_data_set_array(script_settings, "widget_increase_wins", hk_array)
     obs.obs_data_array_release(hk_array)
+    
     hk_array = obs.obs_hotkey_save(hotkey_increase_losses_id)
-    obs.obs_data_set_array(settings, "widget_increase_losses", hk_array)
+    obs.obs_data_set_array(script_settings, "widget_increase_losses", hk_array)
     obs.obs_data_array_release(hk_array)
+    
     hk_array = obs.obs_hotkey_save(hotkey_increase_rank_id)
-    obs.obs_data_set_array(settings, "widget_increase_rank", hk_array)
+    obs.obs_data_set_array(script_settings, "widget_increase_rank", hk_array)
     obs.obs_data_array_release(hk_array)
+    
     hk_array = obs.obs_hotkey_save(hotkey_decrease_rank_id)
-    obs.obs_data_set_array(settings, "widget_decrease_rank", hk_array)
+    obs.obs_data_set_array(script_settings, "widget_decrease_rank", hk_array)
     obs.obs_data_array_release(hk_array)
+    
     hk_array = obs.obs_hotkey_save(hotkey_reset_stats_id)
-    obs.obs_data_set_array(settings, "widget_reset_stats", hk_array)
+    obs.obs_data_set_array(script_settings, "widget_reset_stats", hk_array)
     obs.obs_data_array_release(hk_array)
 end
 
@@ -484,7 +518,7 @@ end
 function stop_script_and_delete_widget()
     stop_all_activity()
     delete_widget_source()
-    stopped = true
+   
     widget_source = nil
     if settings_global and obs.obs_data_valid(settings_global) then
         obs.obs_data_release(settings_global)
@@ -494,3 +528,4 @@ function stop_script_and_delete_widget()
     obs.script_log(obs.LOG_INFO, "stop_script_and_delete_widget: Скрипт остановлен и виджет удалён безопасно.")
     return true
 end
+
