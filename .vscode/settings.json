@@ -31,10 +31,13 @@
         "hotkey_increase_rank_id",
         "hotkey_decrease_rank_id",
         "hotkey_reset_stats_id",
-        "find_widget_sources"
+        "find_widget_sources",
+        "auto_create_source",
+        "script_settings"
     ],
     "Lua.diagnostics.disable": [
         "param-type-mismatch",
-        "unused-local"
+        "unused-local",
+        "redefined-local"
     ]
 }

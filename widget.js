@@ -160,10 +160,23 @@ document.addEventListener('DOMContentLoaded', () => {
     currentConfig.colors.rankText = params.get('rankTextColor');
   }
   if (params.has('font')) {
-    currentConfig.font = params.get('font');
-    // Устанавливаем CSS-переменную для семейства шрифтов
-    document.documentElement.style.setProperty('--font-family', currentConfig.font);
-  }
+    // Декодируем и форматируем название
+    let font = decodeURIComponent(params.get('font'))
+        .replace(/\+/g, ' ');
+    
+    // Добавляем кавычки если есть пробелы
+    if (font.indexOf(' ') > -1) {
+        font = `'${font}'`;
+    }
+    
+    // Обновляем CSS переменную
+    document.documentElement.style.setProperty('--font', font);
+    
+    // Принудительно обновляем элементы
+    document.querySelectorAll('.widget').forEach(el => {
+        el.style.fontFamily = font + ', Arial, sans-serif';
+    });
+}
   if (params.has('fontSize')) {
     currentConfig.fontSize = parseInt(params.get('fontSize'));
     // Устанавливаем CSS-переменную для размера шрифта
