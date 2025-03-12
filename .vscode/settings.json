@@ -25,7 +25,13 @@
         "update_widget_source",
         "int_to_css_color",
         "urlencode",
-        "font_size"
+        "font_size",
+        "hotkey_increase_wins_id",
+        "hotkey_increase_losses_id",
+        "hotkey_increase_rank_id",
+        "hotkey_decrease_rank_id",
+        "hotkey_reset_stats_id",
+        "find_widget_sources"
     ],
     "Lua.diagnostics.disable": [
         "param-type-mismatch",

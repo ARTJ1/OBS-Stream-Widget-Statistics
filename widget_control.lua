@@ -21,14 +21,14 @@ for level = 500, 1, -1 do
 end
 
 -- Настройки внешнего вида
-local bg_type = "color"          -- "color" или "image"
-local bg_color = "rgba(0,0,0,0.7)"
-local bg_image = ""
-local font = "Arial, sans-serif" -- значение по умолчанию
-local font_size_global = 0   
-local wins_color = "#00ff00"
-local losses_color = "#ff0000"
-local rank_text_color = "#ffffff"
+local style_settings = {
+    bg_type = "color",
+    bg_color = "rgba(0,0,0,0.7)",
+    font = "Arial, sans-serif",
+    wins_color = "#00ff00",
+    losses_color = "#ff0000",
+    rank_text_color = "#ffffff"
+}
 
 -- Настройки анимации (в мс)
 local anim_direction = "left"
@@ -77,99 +77,80 @@ end
 -- Обновление браузерного источника (передача параметров через URL)
 ---------------------------------------------------
 function update_widget_source()
-    if widget_source then
-        local settings = obs.obs_data_create()
-        local new_url = widget_url ..
-            "?wins=" .. wins ..
-            "&losses=" .. losses ..
-            "&rank=" .. rank ..
-            "&bgType=" .. urlencode(bg_type) ..
-            "&bgColor=" .. urlencode(bg_color) ..
-            "&bgImage=" .. urlencode(bg_image) ..
-            "&font=" .. urlencode(font) ..
-            "&fontSize=" .. tostring(font_size_global) .. 
-            "&winsColor=" .. urlencode(wins_color) ..
-            "&lossesColor=" .. urlencode(losses_color) ..
-            "&rankTextColor=" .. urlencode(rank_text_color) ..
-            "&animDirection=" .. urlencode(anim_direction) ..
-            "&animDurationIn=" .. anim_duration_in ..
-            "&animStayTime=" .. anim_stay_time ..
-            "&animDurationOut=" .. anim_duration_out ..
-            "&hiddenTime=" .. hidden_time ..
-            "&_ts=" .. os.time()
-        obs.obs_data_set_string(settings, "url", new_url)
-        obs.obs_source_update(widget_source, settings)
-        obs.obs_data_release(settings)
+    if not widget_source  then
+        local sources = find_widget_sources()
+        if #sources == 0 then
+            if auto_create_source then
+                create_widget_source()
+            else
+                return
+            end
+        else
+            widget_source = sources[1]
+        end
     end
+
+    local params = {
+        wins = wins,
+        losses = losses,
+        rank = rank,
+        bgType = style_settings.bg_type,
+        bgColor = style_settings.bg_color,
+        font = style_settings.font,
+        winsColor = style_settings.wins_color,
+        lossesColor = style_settings.losses_color,
+        rankTextColor = style_settings.rank_text_color
+    }
+
+    local query = ""
+    for k, v in pairs(params) do
+        query = query .. k .. "=" .. urlencode(tostring(v)) .. "&"
+    end
+
+    local settings = obs.obs_data_create()
+    obs.obs_data_set_string(settings, "url", widget_url .. "?" .. query .. "_t="..os.time())
+    obs.obs_source_update(widget_source, settings)
+    obs.obs_data_release(settings)
 end
 
 ---------------------------------------------------
 -- Поиск источника "Widget Stats" в текущей сцене
 ---------------------------------------------------
-function find_widget_source()
-    local scenes = obs.obs_frontend_get_scenes()
-    if not scenes then return nil end
-
-    local found_source = nil
-
-    for _, scene_source in ipairs(scenes) do
-        local scene = obs.obs_scene_from_source(scene_source)
-        if scene then
-            local items = obs.obs_scene_enum_items(scene)
-            for _, item in ipairs(items) do
-                local src = obs.obs_sceneitem_get_source(item)
-                if src and obs.obs_source_get_name(src) == "Widget Stats" then
-                    found_source = src
-                    break
-                end
-            end
-            obs.sceneitem_list_release(items)
-            obs.obs_scene_release(scene)
-
-            -- Если нашли виджет – выходим
-            if found_source then break end
+function find_widget_sources()
+    local sources = obs.obs_enum_sources()
+    local result = {}
+    
+    for _, src in ipairs(sources) do
+        if obs.obs_source_get_name(src) == "Widget Stats" then
+            table.insert(result, obs.obs_source_get_ref(src))
         end
     end
-
-    -- Освобождаем ресурсы
-    for _, scene_source in ipairs(scenes) do
-        obs.obs_source_release(scene_source)
-    end
-
-    return found_source
+    
+    obs.source_list_release(sources)
+    return result
 end
 
 ---------------------------------------------------
 -- Создание источника виджета
 ---------------------------------------------------
 function create_widget_source()
-    local scene_source = obs.obs_frontend_get_current_scene()
-    if not scene_source then
-        obs.script_log(obs.LOG_WARNING, "Не удалось получить текущую сцену!")
-        return
-    end
-    local scene = obs.obs_scene_from_source(scene_source)
-    if not scene then
-        obs.script_log(obs.LOG_WARNING, "Не удалось получить сцену из источника!")
-        obs.obs_source_release(scene_source)
-        return
-    end
-    obs.script_log(obs.LOG_INFO, "Сцена успешно получена.")
-    local source_settings = obs.obs_data_create()
-    local initial_url = widget_url .. "?_ts=" .. os.time()
-    obs.obs_data_set_string(source_settings, "url", initial_url)
-    obs.obs_data_set_int(source_settings, "width", 320)
-    obs.obs_data_set_int(source_settings, "height", 100)
-    widget_source = obs.obs_source_create("browser_source", "Widget Stats", source_settings, nil)
-    if not widget_source then
-        obs.script_log(obs.LOG_WARNING, "Не удалось создать источник виджета!")
-        obs.obs_data_release(source_settings)
-        return
-    end
+    local current_scene = obs.obs_frontend_get_current_scene()
+    if not current_scene then return end
+
+    local scene = obs.obs_scene_from_source(current_scene)
+    local settings = obs.obs_data_create()
+    
+    obs.obs_data_set_string(settings, "url", widget_url)
+    obs.obs_data_set_int(settings, "width", 320)
+    obs.obs_data_set_int(settings, "height", 100)
+    
+    widget_source = obs.obs_source_create("browser_source", "Widget Stats", settings, nil)
     obs.obs_scene_add(scene, widget_source)
-    obs.obs_data_release(source_settings)
-    obs.obs_source_release(scene_source)
-    obs.script_log(obs.LOG_INFO, "Источник виджета успешно добавлен в сцену.")
+    
+    -- Корректное освобождение ресурсов --
+    obs.obs_data_release(settings)
+    obs.obs_scene_release(scene)
+    obs.obs_source_release(current_scene)
 end
 
 ---------------------------------------------------
@@ -295,11 +276,14 @@ function script_defaults(settings)
     obs.obs_data_set_default_int(settings, "bg_color", 0xB2000000)
     obs.obs_data_set_default_int(settings, "bg_alpha", 70)
     obs.obs_data_set_default_string(settings, "bg_image", "")
-  
-    obs.obs_data_set_default_string(settings, "face", "Arial, sans-serif")
-    obs.obs_data_set_default_int(settings, "size", 16)  -- можно задать нужный размер по умолчанию
-    obs.obs_data_set_default_obj(settings, "font", settings)
-
+    
+    -- Создаем отдельный объект для шрифта
+    local font_defaults = obs.obs_data_create()
+    obs.obs_data_set_default_string(font_defaults, "face", "Arial, sans-serif")
+    obs.obs_data_set_default_int(font_defaults, "size", 16)
+    obs.obs_data_set_default_obj(settings, "font", font_defaults)
+    obs.obs_data_release(font_defaults)
+    
     obs.obs_data_set_default_int(settings, "wins_color", 0xFF00FF00)
     obs.obs_data_set_default_int(settings, "losses_color", 0xFF0000FF)
     obs.obs_data_set_default_int(settings, "rank_text_color", 0xFFFFFFFF)
@@ -324,19 +308,23 @@ function delayed_init()
         return
     end
     obs.obs_source_release(scene_source)
-    local existing_widget = find_widget_source()
-    if existing_widget then
-        obs.script_log(obs.LOG_INFO, "Delayed init: найден существующий источник виджета.")
-        widget_source = existing_widget
+    local widget_sources = find_widget_sources()
+    if #widget_sources > 0 then
+        widget_source = widget_sources[1]
         update_widget_source()
+        -- Освобождаем лишние ссылки, если они есть
+        for i = 2, #widget_sources do
+            obs.obs_source_release(widget_sources[i])
+        end
     else
+        obs.script_log(obs.LOG_INFO, "Виджет 'Widget Stats' не найден.")
         if auto_create_source then
             obs.script_log(obs.LOG_INFO, "Delayed init: источник виджета не найден, создаем новый.")
             create_widget_source()
         else
             obs.script_log(obs.LOG_INFO, "Delayed init: автоматическое создание отключено.")
         end
-    end
+    end    
 end
 
 function script_load(settings)
@@ -356,15 +344,18 @@ function script_load(settings)
     end
 
     obs.script_log(obs.LOG_INFO, "Скрипт загружается...")
-    local existing_widget = find_widget_source()
-    if existing_widget then
-        obs.script_log(obs.LOG_INFO, "Виджет уже существует. Обновляем его.")
-        widget_source = existing_widget
-        update_widget_source()
+    local widget_sources = find_widget_sources()
+    if #widget_sources > 0 then
+        for _, src in ipairs(widget_sources) do
+            obs.script_log(obs.LOG_INFO, "Найден виджет: " .. obs.obs_source_get_name(src))
+            -- Когда источник больше не нужен, не забудьте освободить его:
+            obs.obs_source_release(src)
+        end
     else
-        obs.script_log(obs.LOG_INFO, "Источник виджета не найден, запланирован Delayed Init...")
+        obs.script_log(obs.LOG_INFO, "Виджет 'Widget Stats' не найден.")
         obs.timer_add(delayed_init, 500)
     end
+   
     obs.script_log(obs.LOG_INFO, "Регистрация горячих клавиш...")
     hotkey(settings)
 end
@@ -422,25 +413,10 @@ end
 -- Функция script_unload – вызывается OBS при выгрузке скрипта
 ---------------------------------------------------
 function script_unload()
-    -- Останавливаем таймеры и горячие клавиши
-    obs.timer_remove(delayed_init)
-    stop_all_activity()
-
-    -- Удаляем источник вручную
-    if widget_source ~= nil then
-        obs.obs_source_remove(widget_source) -- Удаляем из сцены
-        obs.obs_source_release(widget_source) -- Освобождаем ссылку
+    if widget_source then
+        obs.obs_source_release(widget_source)
         widget_source = nil
     end
-
-    -- Освобождаем глобальные настройки, если они существуют
-    if settings_global and obs.obs_data_valid(settings_global) then
-        obs.obs_data_release(settings_global)
-        settings_global = nil
-    end
-
-    collectgarbage("collect")
-    obs.script_log(obs.LOG_INFO, "script_unload: Скрипт выгружен, ресурсы очищены, источник удалён.")
 end
 ---------------------------------------------------
 -- Функция для остановки всех таймеров и горячих клавиш
