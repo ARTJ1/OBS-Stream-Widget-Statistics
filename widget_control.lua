@@ -117,7 +117,8 @@ function update_widget_source()
     for k, v in pairs(params) do
         query = query .. k .. "=" .. tostring(v) .. "&"
     end
-    local full_url = settings.widget_url .. "?" .. query .. "_t="..os.time()
+    local ts = tostring(os.time()) .. tostring(math.random(10000, 99999))
+    local full_url = settings.widget_url .. "?" .. query .. "_t="..ts
 
     -- Обновляем источник
     local source_settings = obs.obs_data_create()
