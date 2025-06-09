@@ -7,6 +7,8 @@
 
 
  и появятся настройки виджета 
+
+ 
 ![image](https://github.com/user-attachments/assets/2de4b658-c4eb-40f4-adfb-67871bc560a1)
 
 
