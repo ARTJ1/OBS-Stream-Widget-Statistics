@@ -14,7 +14,7 @@
  или добовляем  через кнопку ![image](https://github.com/user-attachments/assets/23fda157-8649-42bd-a1d1-5313e8c21f12)
 
 Иначе не будет отображаться виджет!
-![image](https://github.com/user-attachments/assets/9aabf65e-8f0e-467a-a817-e197abab3b53)
+
 !!! НА ЭТОМ МОЕНТЕ ЗАКРЫВАЕМ ОБС!!!
 и открываем по нововй виджет сам создастся на сцене 
 
