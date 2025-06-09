@@ -1,51 +1,372 @@
 :root {
-    --bg-color: rgba(0, 0, 0, 0.7);
-    --wins-color: #00ff00;
-    --losses-color: #ff0000;
-    --rank-text-color: #ffffff;
-    --font: Arial, sans-serif;
-    --font-size: 16px;
-    
+  /* Colors & Fonts (JS will override these) */
+  --bg-color: rgba(0, 0, 0, 0.7);
+  --wins-color: #00ff00;
+  --losses-color: #ff0000;
+  --rank-text-color: #ffffff;
+  --font: 'Arial', sans-serif;
+  --font-size: 16px;
+
+  /* Timings (JS will override these) */
+  --animation-duration-in: 0.5s; /* Длительность появления */
+  --animation-duration-out: 0.5s; /* Длительность исчезновения */
+  --animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* New CSS variables for rank animations */
+  --rank-epic-duration: 1.8s; /* Ещё увеличил для большего масштаба */
+  --rank-subtle-duration: 0.6s; /* Для внутридивизионных изменений */
+  --rank-idle-duration: 2.5s; /* Длительность пульсации в режиме ожидания */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font), Arial, sans-serif;
+  overflow: hidden; /* Prevents scrollbars during animations */
 }
 
 .widget {
-    position: fixed;
-    /* Убрать дублирование font-family */
-    background: var(--bg-color);
-    padding: 15px;
-    border-radius: 10px;
-    color: white;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    transition: all ease-in-out;
-    transform: translateY(-100%);
-    opacity: 0;
-    font-family: var(--font), Arial, sans-serif;
-    font-size: var(--font-size);
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: var(--bg-color);
+  padding: 12px 20px;
+  border-radius: 12px;
+  color: white;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-size: var(--font-size);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 10000; /* Гарантируем, что виджет будет поверх всего */
+
+  opacity: 0; /* Изначально скрыт и прозрачен */
+  transform: translateX(-150%);
+  transition: opacity var(--animation-duration-in) var(--animation-timing-function),
+              transform var(--animation-duration-in) var(--animation-timing-function);
+  will-change: opacity, transform; /* Оптимизация для анимаций */
 }
+
+/* Initial position based on direction (hidden off-screen) */
+.widget.from-left { transform: translateX(-150%); }
+.widget.from-right { transform: translateX(150vw); }
+.widget.from-top { transform: translateY(-150%); }
+.widget.from-bottom { transform: translateY(150vh); }
+
+/* Visible state (moves to screen, fully opaque) */
+.widget.visible {
+  opacity: 1;
+  transform: translateX(0) translateY(0);
+  transition-duration: var(--animation-duration-in);
+}
+
+/* Hide state (moves back off-screen, becomes transparent) */
+.widget.hide {
+  opacity: 0;
+  transition: opacity var(--animation-duration-out) var(--animation-timing-function),
+              transform var(--animation-duration-out) var(--animation-timing-function);
+}
+
+/* Specific hide directions (re-apply the 'from' transformation as 'to' for hide) */
+.widget.hide.from-left { transform: translateX(-150%); }
+.widget.hide.from-right { transform: translateX(150vw); }
+.widget.hide.from-top { transform: translateY(-150%); }
+.widget.hide.from-bottom { transform: translateY(150vh); }
+
 
 .stats {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
 }
 
-.rank-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.rank-icon {
-    width: 40px;
-    height: 40px;
+.stat-icon {
+  width: 32px;
+  height: 32px;
+  transition: transform 0.2s ease-out, filter 0.2s ease-out;
+  display: block;
 }
 
-.rank-text {
-    color: var(--rank-text-color);
-    font-weight: bold;
+.icon-fill-container {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.icon-fill-container svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.stat-value {
+  font-weight: bold;
+  font-size: calc(var(--font-size) * 1.2);
+  transition: transform 0.3s ease, color 0.3s ease;
+  align-self: center;
+}
+
+/* Wins and Losses colors */
 #wins { color: var(--wins-color); }
 #losses { color: var(--losses-color); }
+
+/* Gradient stop transitions for fill animation */
+#winsFillGradient stop, #lossesFillGradient stop {
+    transition: offset 0.4s ease-out;
+}
+
+/* Rank section - ТЕКСТ СПРАВА ОТ ИКОНКИ РАНГА */
+.rank-section {
+  display: flex;
+  align-items: center; /* Центрируем по вертикали */
+  gap: 10px; /* Расстояние между иконкой и текстом */
+}
+
+#rank-animation-wrapper {
+  position: relative;
+  width: 48px; /* Fixed size for the rank image */
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  /* Убрал overflow: hidden; чтобы эффекты выходили за рамки */
+}
+
+#rankImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  position: relative;
+  z-index: 2; /* Над эффектами */
+}
+
+#rankValue {
+  color: var(--rank-text-color);
+  font-weight: bold;
+  font-size: calc(var(--font-size) * 1.3);
+  padding-bottom: 2px;
+  position: relative;
+  z-index: 2;
+}
+
+
+/* ================================== */
+/* NEW RANK ANIMATIONS */
+/* ================================== */
+
+/* --- Rank Idle Pulse (постоянная пульсация, когда ранг не меняется) --- */
+#rank-animation-wrapper.rank-idle-pulse #rankImage {
+    animation: rankIdlePulseImage var(--rank-idle-duration) infinite alternate ease-in-out;
+}
+#rank-animation-wrapper.rank-idle-pulse #rankValue {
+    animation: rankIdlePulseText var(--rank-idle-duration) infinite alternate ease-in-out;
+}
+
+@keyframes rankIdlePulseImage {
+    0% { transform: scale(1); filter: brightness(1); }
+    100% { transform: scale(1.04); filter: brightness(1.15) drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+}
+
+@keyframes rankIdlePulseText {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.02); opacity: 0.98; }
+}
+
+/* --- Rank Level Change (внутри дивизиона: Gold 4 -> Gold 3) --- */
+/* Оставляем текущую, она работает хорошо */
+#rank-animation-wrapper.rank-level-change #rankImage {
+  animation: rankLevelChangeImageNew var(--rank-subtle-duration) forwards ease-out;
+}
+
+#rank-animation-wrapper.rank-level-change #rankValue {
+  animation: rankLevelChangeTextNew var(--rank-subtle-duration) forwards ease-out;
+}
+
+@keyframes rankLevelChangeImageNew {
+    0% { transform: scale(1) rotateY(0deg); opacity: 1; filter: brightness(1); }
+    40% { transform: scale(0.6) rotateY(90deg); opacity: 0; filter: brightness(0.5) blur(2px); }
+    41% { transform: scale(0.6) rotateY(-90deg); opacity: 0; filter: brightness(1.5) blur(2px); }
+    100% { transform: scale(1) rotateY(0deg); opacity: 1; filter: brightness(1); }
+}
+
+@keyframes rankLevelChangeTextNew {
+    0% { transform: translateY(0); opacity: 1; }
+    40% { transform: translateY(-8px); opacity: 0; }
+    41% { transform: translateY(8px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+
+/* --- Rank Up Division (Epic: Platinum 1 -> Diamond 5) --- */
+/* Эпичная анимация "рождения из света" с псевдоэлементом для вспышки */
+#rank-animation-wrapper.rank-up-division #rankImage {
+  animation: rankUpDivisionImageEpic var(--rank-epic-duration) forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+#rank-animation-wrapper.rank-up-division #rankValue {
+  animation: rankUpDivisionTextEpic var(--rank-epic-duration) forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Псевдоэлемент для сияния/вспышки при повышении - уменьшаем первую вспышку и интенсивность */
+#rank-animation-wrapper.rank-up-division::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px; /* Исходный размер */
+    height: 20px;
+    background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 30%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 1; /* Под иконкой */
+    animation: rankUpFlash var(--rank-epic-duration) forwards ease-out;
+    filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); /* Уменьшил тень для свечения */
+}
+
+@keyframes rankUpFlash {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    /* Уменьшаем масштаб первой вспышки и интенсивность */
+    15% { transform: translate(-50%, -50%) scale(15); opacity: 0.8; filter: brightness(1.2) blur(5px) drop-shadow(0 0 15px rgba(255,255,255,0.6)); } /* Значительно уменьшил scale, opacity, brightness, blur и тень */
+    40% { transform: translate(-50%, -50%) scale(0); opacity: 0; filter: brightness(1) blur(0px); } /* Вспышка угасает */
+    100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+}
+
+@keyframes rankUpDivisionImageEpic {
+    0% { transform: scale(0.1) rotateY(0deg); opacity: 0; filter: brightness(5) blur(10px) drop-shadow(0 0 0px #fff); }
+    10% { transform: scale(1.5) rotateY(0deg); opacity: 1; filter: brightness(3) blur(5px) drop-shadow(0 0 20px rgba(255,255,255,0.8)); } /* Старая иконка резко вспыхивает и увеличивается */
+    40% { transform: scale(0.8) rotateY(90deg); opacity: 0; filter: brightness(0.5) blur(5px) drop-shadow(0 0 5px rgba(255,255,255,0)); } /* Старая иконка исчезает с вращением */
+    41% { transform: scale(0.8) rotateY(-90deg); opacity: 0; filter: brightness(0.5) blur(5px) drop-shadow(0 0 5px rgba(255,255,255,0)); } /* Новая иконка появляется с вращением */
+    60% { transform: scale(1.5) rotateY(0deg); opacity: 1; filter: brightness(3) blur(5px) drop-shadow(0 0 20px rgba(255,255,255,0.8)); } /* Новая иконка резко вспыхивает */
+    100% { transform: scale(1) rotateY(0deg); opacity: 1; filter: brightness(1) blur(0px) drop-shadow(0 0 0px #fff); }
+}
+
+@keyframes rankUpDivisionTextEpic {
+    0% { transform: translateY(20px); opacity: 0; letter-spacing: -2px; }
+    20% { transform: translateY(0); opacity: 1; letter-spacing: 0; } /* Старый текст появляется */
+    40% { transform: translateY(-20px); opacity: 0; letter-spacing: 2px; } /* Старый текст улетает вверх, расширяясь */
+    41% { transform: translateY(20px); opacity: 0; letter-spacing: 2px; } /* Новый текст появляется снизу */
+    60% { transform: translateY(-5px); opacity: 1; letter-spacing: 0; } /* Небольшой отскок */
+    100% { transform: translateY(0); opacity: 1; letter-spacing: 0; }
+}
+
+
+/* --- Rank Down Division (Epic: Diamond 5 -> Platinum 1) --- */
+/* Эпичная анимация "разрушения/разламывания" */
+#rank-animation-wrapper.rank-down-division #rankImage {
+  animation: rankDownDivisionImageShatter var(--rank-epic-duration) forwards ease-in-out;
+}
+
+#rank-animation-wrapper.rank-down-division #rankValue {
+  animation: rankDownDivisionTextShatter var(--rank-epic-duration) forwards ease-in-out;
+}
+
+/* Псевдоэлемент для имитации трещин/фрагментов - больше на разлом */
+#rank-animation-wrapper.rank-down-division::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 30% 30%, rgba(200,200,200,0.8) 0%, rgba(100,100,100,0) 50%),
+                radial-gradient(circle at 70% 70%, rgba(200,200,200,0.8) 0%, rgba(100,100,100,0) 50%); /* Светлые пятна для имитации трещин */
+    border-radius: 50%; /* Начнем с круга, но будем деформировать */
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    z-index: 3; /* Поверх иконки */
+    animation: rankDownShatterEffect var(--rank-epic-duration) forwards ease-in-out;
+    filter: blur(0px) drop-shadow(0 0 5px rgba(0,0,0,0.5)); /* Тень для объема */
+    mix-blend-mode: screen; /* Чтобы светлые части были видны */
+}
+
+@keyframes rankDownShatterEffect {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; filter: blur(0px); }
+    15% { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); opacity: 0.7; filter: blur(2px) drop-shadow(0 0 10px rgba(255,0,0,0.5)); } /* Нарастание "трещин" с легким красным оттенком */
+    30% { transform: translate(-50%, -50%) scale(1.5) rotate(15deg); opacity: 0.8; filter: blur(5px) drop-shadow(0 0 15px rgba(255,0,0,0.8)); } /* Максимальное "разрушение" */
+    45% { transform: translate(-50%, -50%) scale(0) rotate(30deg); opacity: 0; filter: blur(10px); } /* Быстрое исчезновение */
+    100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+}
+
+@keyframes rankDownDivisionImageShatter {
+    0% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1) grayscale(0) saturate(1) drop-shadow(0 0 0px transparent); }
+    15% { transform: scale(1.05) rotate(3deg); filter: brightness(0.7) grayscale(0.3) saturate(0.5) drop-shadow(0 0 10px rgba(255,0,0,0.5)); } /* Тускнеет, красная тень */
+    30% { transform: scale(0.6) rotate(-15deg); opacity: 0.2; filter: brightness(0) grayscale(1) blur(10px) saturate(0) drop-shadow(0 0 20px rgba(0,0,0,0.8)); } /* Сильно разрушается, почти исчезает */
+    35% { transform: scale(0.2) rotate(-30deg); opacity: 0; filter: brightness(0) grayscale(1) blur(15px) saturate(0); } /* Полное исчезновение старой иконки */
+    36% { transform: scale(1.5) rotate(30deg); opacity: 0; filter: brightness(0.5) grayscale(1) blur(10px); } /* Новая иконка появляется искаженная */
+    70% { transform: scale(0.95) rotate(-2deg); opacity: 1; filter: brightness(1) grayscale(0); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1) grayscale(0); }
+}
+
+@keyframes rankDownDivisionTextShatter {
+    0% { transform: translateY(0); opacity: 1; letter-spacing: 0; text-shadow: none; }
+    15% { transform: translateY(5px); opacity: 0.7; text-shadow: 0 0 8px rgba(255,0,0,0.6); } /* Текст опускается, светится красным */
+    35% { transform: translateY(20px); opacity: 0; letter-spacing: 15px; text-shadow: 0 0 25px rgba(255,0,0,1); } /* Уходит вниз, сильно распадается */
+    36% { transform: translateY(-20px); opacity: 0; letter-spacing: -10px; } /* Новый текст появляется сверху, сильно сжатый */
+    60% { transform: translateY(-5px); opacity: 1; letter-spacing: 0; } /* Небольшой отскок */
+    100% { transform: translateY(0); opacity: 1; letter-spacing: 0; text-shadow: none; }
+}
+
+
+/* ================================== */
+/* FANFARE / SKULL SHAKE */
+/* ================================== */
+
+/* Fanfare for Wins (Кубок) */
+#winsIconContainer.fanfare-active {
+  animation: fanfareCup 2s forwards;
+}
+
+@keyframes fanfareCup {
+  0% { transform: scale(1); }
+  20% { transform: scale(1.1) rotate(5deg); }
+  40% { transform: scale(1.1) rotate(-5deg); }
+  60% { transform: scale(1.1) rotate(5deg); }
+  80% { transform: scale(1.1) rotate(-5deg); }
+  100% { transform: scale(1); }
+}
+
+/* Skull Shake for Losses (Череп) */
+#lossesIconContainer.skull-shake-active {
+  animation: skullShake 2s forwards;
+}
+
+@keyframes skullShake {
+  0% { transform: translateX(0) rotate(0); }
+  10% { transform: translateX(-3px) rotate(-2deg); }
+  20% { transform: translateX(3px) rotate(2deg); }
+  30% { transform: translateX(-3px) rotate(-2deg); }
+  40% { transform: translateX(3px) rotate(2deg); }
+  50% { transform: translateX(-3px) rotate(-2deg); }
+  60% { transform: translateX(3px) rotate(2deg); }
+  70% { transform: translateX(-3px) rotate(-2deg); }
+    80% { transform: translateX(3px) rotate(2deg); }
+    90% { transform: translateX(-3px) rotate(-2deg); }
+    100% { transform: translateX(0) rotate(0); }
+}
+
+/* Value change animation for numbers (побед/поражений) */
+.value-change {
+    animation: valueChange 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes valueChange {
+    0% { transform: translateY(0); opacity: 1; }
+    30% { transform: translateY(-25px); opacity: 0; }
+    31% { transform: translateY(25px); opacity: 0; }
+    60% { transform: translateY(-8px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 1; }
+}
