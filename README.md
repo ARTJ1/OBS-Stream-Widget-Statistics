@@ -35,7 +35,7 @@
 Новые  анимации  ниже
 [2025-06-09 16-49-06_1.webm](https://github.com/user-attachments/assets/39f89a75-ecd8-4259-86eb-a0a49a02592a)
 
-<video width="630" height="300" src="[2025-06-09 16-49-06_1.webm](https://github.com/user-attachments/assets/39f89a75-ecd8-4259-86eb-a0a49a02592a)"></video>
+<video width="630" height="300" src="https://github.com/user-attachments/assets/39f89a75-ecd8-4259-86eb-a0a49a02592a"></video>
 
 
 
