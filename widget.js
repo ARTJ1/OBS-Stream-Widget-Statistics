@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.documentElement.style.setProperty('--losses-color', decodeURIComponent(params.get('lossesColor') || '#ff0000'));
   document.documentElement.style.setProperty('--rank-text-color', decodeURIComponent(params.get('rankTextColor') || '#ffffff'));
   document.documentElement.style.setProperty('--font', decodeURIComponent(params.get('font') || 'Arial, sans-serif'));
-  document.documentElement.style.setProperty('--font-size', decodeURIComponent(params.get('fontSize') || '16px'));
+  document.documentElement.style.setProperty('--font-size', decodeURIComponent(params.get('fontSize') + 'px' || '16px'));
   document.documentElement.style.setProperty('--animation-duration-in', `${animDurationIn}s`);
   document.documentElement.style.setProperty('--animation-duration-out', `${animDurationOut}s`);
   document.documentElement.style.setProperty('--animation-timing-function', animationTimingFunction);
